@@ -17,17 +17,29 @@ const upload = async (req, res) => {
       // skip header
         rows.shift();
 
-        rows.forEach((row) => {
-            db.query(
-                "INSERT INTO users (first_name, last_name, email, phone, joined_at, club_id) VALUES (?,?,?,?,?,?)", 
-                [row[0], row[1], row[2], row[3], row[4], '2400'], (err, result) =>
-                    { if (err) {
+        rows.forEach((row) => {        
+            db.query( //check if email existed in the databse
+                `SELECT * FROM users WHERE email = ?`,[row[2]], (err, result) =>{
+                    if(err){
                         res.status(500).send(err)
                     } else {
-                        db.query(
-                        "INSERT INTO memberships (user_id, start_date, end_date, membership_name) VALUES (?,?,?,?)",
-                    [result.insertId, row[4], row[5], row[6]]
-                    )}
+                        if(result.length > 0) {
+                            console.log('user is already exists')
+                        } else {
+                            db.query( // insert user to database
+                                "INSERT INTO users (first_name, last_name, email, phone, joined_at, club_id) VALUES (?,?,?,?,?,?)", 
+                                [row[0], row[1], row[2], row[3], row[4], '2400'], (err, result) =>
+                                    { if (err) {
+                                        res.status(500).send(err)
+                                    } else {
+                                        db.query( //insert membership to database
+                                        "INSERT INTO memberships (user_id, start_date, end_date, membership_name) VALUES (?,?,?,?)",
+                                    [result.insertId, row[4], row[5], row[6]]
+                                    )}
+                                }
+                            )
+                        }
+                    }
                 }
             )
         })

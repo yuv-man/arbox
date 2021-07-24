@@ -4,6 +4,7 @@ const readXlsxFile = require("read-excel-file/node");
 // add excel table to database
 
 const upload = async (req, res) => {
+    const club_id = req.body
     try {
         if (req.file == undefined) {
         return res.status(400).send("Please upload an excel file!");
@@ -16,32 +17,22 @@ const upload = async (req, res) => {
       // skip header
         rows.shift();
 
-        console.log(rows)
-
-        let usersTable = [];
-        let membershipTable = [];
-
         rows.forEach((row) => {
-            let userRow = [row[0], row[1], row[2], row[3], row[4], '2400']
-            console.log(userRow)
-            usersTable.push(userRow)
-        })
-    
-        const statement = "INSERT INTO users (first_name, last_name, email, phone, joined_at, club_id) VALUES ?";
-        
-        db.query(
-            statement, [usersTable], (err, result) => {
-                if(err){
-                    console.log(err)
-                    res.send(err)
-                } else {
-                    console.log(result.insertId)
-                    res.send('well done')
+            db.query(
+                "INSERT INTO users (first_name, last_name, email, phone, joined_at, club_id) VALUES (?,?,?,?,?,?)", 
+                [row[0], row[1], row[2], row[3], row[4], '2400'], (err, result) =>
+                    { if (err) {
+                        res.status(500).send(err)
+                    } else {
+                        db.query(
+                        "INSERT INTO memberships (user_id, start_date, end_date, membership_name) VALUES (?,?,?,?)",
+                    [result.insertId, row[4], row[5], row[6]]
+                    )}
                 }
-            }
-        )
+            )
+        })
+        res.send('table added')
     });
-
     } catch (error) {
         console.log(error);
         res.status(500).send({

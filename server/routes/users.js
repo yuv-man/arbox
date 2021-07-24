@@ -6,7 +6,9 @@ const upload = require('../controllers/multer')
 
 router.use(express.json());
 
-router.post('/create', usersController.userCreate)
+router.get('/', usersController.getUsers);
+router.post('/createUser', usersController.userCreate)
+router.post('/createUserWithMembership', usersController.userCreateWithMembership)
 router.post('/upload', upload.single("file"), excelControllers.upload);
 
 module.exports = router;    
